@@ -1,101 +1,62 @@
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 import pandas as pd
-
 from db import get_data
 
-st.set_page_config(layout='wide')
+st.set_page_config(page_title="Bike Store Analytics", layout="wide")
 
+st.title("🚲 Аналитика магазина")
 
-customers = get_data('customers')
+sales_df = get_data('sales_analytics')
+history_df = get_data('customer_dynamics')
 
+st.sidebar.header("Настройка фильтров")
 
-min_date, max_date = customers['date_first_purchase'].agg(['min', 'max'])
-occupation_options = customers['occupation'].sort_values().unique()
+available_brands = [b for b in sales_df['brand_name'].unique().tolist() if pd.notnull(b)]
 
-
-st.title("Dashboard on Customers data")
-
-with st.sidebar:
-    dates_selected = st.date_input(
-        label="Select period",
-        min_value=min_date,
-        max_value=max_date,
-        value=(min_date, max_date)
-    )
-
-    occupations_selected = st.multiselect(
-        label="Select occupation",
-        options=occupation_options,
-        default=occupation_options
-    )
-
-
-if len(dates_selected) == 2:
-    period_filter = f"date_first_purchase.between('{min_date}', '{max_date}')"
-else:
-    period_filter = f"date_first_purchase <= '{min_date}'" 
-
-occupations_filter = f"occupation.isin({occupations_selected})"
-
-composite_filter = f"{period_filter} and {occupations_filter}"
-
-
-customers_filtered = customers.query(composite_filter)
-
-
-if customers_filtered.shape[0] != 0:
-    customers_count = customers_filtered['customer_key'].unique()[0]
-    avg_yearly_income = customers_filtered['yearly_income'].mean()
-
-    col1, col2 = st.columns(2)
-
-    col1.metric(
-        label="Number of customers",
-        value=customers_count
-    )
-
-    col2.metric(
-        label='Avg yearly income',
-        value=int(round(avg_yearly_income, 0))
-    )
-
-
-
-
-
-hist_fig = px.histogram(
-    data_frame=customers_filtered,
-    x='yearly_income',
-    facet_row='gender',
-    color='gender',
-    color_discrete_map={'Female': 'pink', 'Male': 'blue'},
-    title='Yearly Income Distribution by gender'
+selected_brands = st.sidebar.multiselect(
+    "Бренды:", 
+    options=available_brands, 
+    default=available_brands
 )
 
+high_score = sales_df['revenue'].max()
+limit_val = int(high_score) if pd.notnull(high_score) else 0
 
-st.plotly_chart(hist_fig)
-
-
-col1, col2 = st.columns(2)
-pie_fig = px.pie(
-    data_frame=customers_filtered,
-    values='customer_key',
-    names='marital_status',
-    hole=.5
+threshold = st.sidebar.slider(
+    "Порог выручки:", 
+    0, 
+    max(limit_val, 1), 
+    0
 )
 
-col1.plotly_chart(pie_fig)
+mask = (sales_df['brand_name'].isin(selected_brands)) & (sales_df['revenue'] >= threshold)
+filtered_data = sales_df[mask]
 
+left_row, right_row = st.columns(2)
 
-pie_fig2 = px.pie(
-    data_frame=customers_filtered,
-    values='customer_key',
-    names='gender',
-    color='gender',
-    color_discrete_map={'Female': 'pink', 'Male': 'blue'}
-)
+with left_row:
+    # График по категориям
+    st.plotly_chart(
+        px.bar(filtered_data, x='category_name', y='revenue', color='brand_name', title="Выручка по категориям"),
+        use_container_width=True
+    )
 
-col2.plotly_chart(pie_fig2)
+    # Накопительный итог
+    st.plotly_chart(
+        px.line(history_df, x='month', y='running_total', title="Общая динамика продаж"),
+        use_container_width=True
+    )
 
-st.dataframe(customers, hide_index=True)
+with right_row:
+    # Продажи в штуках
+    st.plotly_chart(
+        px.pie(filtered_data, values='total_qty', names='brand_name', title="Распределение по брендам"),
+        use_container_width=True
+    )
+
+    # Зависимость выручки от объема
+    st.plotly_chart(
+        px.scatter(filtered_data, x='total_qty', y='revenue', hover_name='product_name_up', title="Объем vs Доход"),
+        use_container_width=True
+    )

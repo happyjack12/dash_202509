@@ -5,8 +5,8 @@ import duckdb
 DB = 'my.db'
 
 # важно сохранять порядок листов так как сначала идут таблицы без внешних ключей
-TABLES = ['brands', 'categories', 'customers', 'orders', 'products', 'order_items', 
-          'staffs', 'stocks', 'stores']
+TABLES = ['brands', 'categories', 'customers', 'stores', 
+    'staffs', 'products', 'orders', 'order_items', 'stocks']
 
 with open('queries/columns.json') as f:
     columns_dict = json.load(f)
@@ -84,3 +84,4 @@ def pipeline() -> None:
         create_table(table_name)
         load_data(df[usecols], table_name)
 
+pipeline()

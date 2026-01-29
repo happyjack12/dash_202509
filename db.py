@@ -5,7 +5,7 @@ DB = 'my.db'
 
 
 def read_query_file(query_name: str) -> str:
-    with open(f"./queries/{query_name}.sql") as f:
+    with open(f"./queries/{query_name}.sql", encoding='utf-8') as f:
         query = f.read()
     
     return query
