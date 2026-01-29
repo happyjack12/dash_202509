@@ -8,6 +8,6 @@ FROM order_items oi
 LEFT JOIN products p ON oi.product_id = p.product_id
 LEFT JOIN categories c ON p.category_id = c.category_id
 LEFT JOIN brands b ON p.brand_id = b.brand_id
-WHERE b.brand_name IS NOT NULL
 GROUP BY 1, 2, 3
+HAVING revenue > 0
 ORDER BY revenue DESC;

@@ -5,10 +5,12 @@ from db import get_data
 
 st.set_page_config(page_title="Bike Store Analytics", layout="wide")
 
-st.title("🚲 Аналитика магазина")
+st.title("Аналитика магазина")
 
 sales_df = get_data('sales_analytics')
 history_df = get_data('customer_dynamics')
+
+st.write(f"Отладочная инфа: в таблице {len(sales_df)} строк")
 
 st.sidebar.header("Настройка фильтров")
 
@@ -39,24 +41,24 @@ with left_row:
     # График по категориям
     st.plotly_chart(
         px.bar(filtered_data, x='category_name', y='revenue', color='brand_name', title="Выручка по категориям"),
-        use_container_width=True
+        width="stretch"
     )
 
     # Накопительный итог
     st.plotly_chart(
         px.line(history_df, x='month', y='running_total', title="Общая динамика продаж"),
-        use_container_width=True
+        width="stretch"
     )
 
 with right_row:
     # Продажи в штуках
     st.plotly_chart(
         px.pie(filtered_data, values='total_qty', names='brand_name', title="Распределение по брендам"),
-        use_container_width=True
+        width="stretch"
     )
 
     # Зависимость выручки от объема
     st.plotly_chart(
         px.scatter(filtered_data, x='total_qty', y='revenue', hover_name='product_name_up', title="Объем vs Доход"),
-        use_container_width=True
+        width="stretch"
     )

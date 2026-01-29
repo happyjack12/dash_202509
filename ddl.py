@@ -36,7 +36,9 @@ def make_snake_case(camel_cased_word: str) -> str:
 
 def read_data(query_name: str) -> pd.DataFrame:
     print(f"reading data from {query_name}...")
-    df = pd.read_csv(f"source/{query_name}.csv").dropna(thresh=3)
+    df = pd.read_csv(f"source/{query_name}.csv")
+
+    df = df.dropna(how='all')
 
     df.rename(
         columns={col: make_snake_case(col) for col in df.columns}, 
@@ -63,14 +65,18 @@ def create_table(table_name: str) -> None:
 
 
 def load_data(df: pd.DataFrame, table_name: str) -> None:
-    print(f"{table_name}: {df.shape}")
+    print(f"Подготовка к загрузке {table_name}: {df.shape} строк")
+    
     with duckdb.connect(DB) as duck:
-        print(f"loading data to {table_name}...")
-        duck.execute(f"""
-            insert into {table_name}
-            select *
-            from df
-        """)
+        # Регистрируем датафрейм как временное представление, чтобы DuckDB его увидел
+        duck.register('tmp_df', df)
+        
+        print(f"Загрузка данных в {table_name}...")
+        duck.execute(f"INSERT INTO {table_name} SELECT * FROM tmp_df")
+        
+        # Проверка вставки
+        count = duck.execute(f"SELECT count(*) FROM {table_name}").fetchone()[0]
+        print(f"Готово. В таблице {table_name} теперь {count} строк.")
 
 
 def pipeline() -> None:
