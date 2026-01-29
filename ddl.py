@@ -3,13 +3,12 @@ import pandas as pd
 import duckdb
 
 DB = 'my.db'
-SOURCE = 'source/adventure_works.xlsx'
 
 # важно сохранять порядок листов так как сначала идут таблицы без внешних ключей
-SHEETS = ['Customers', 'Territory', 'ProductCategory', 
-          'ProductSubCategory', 'Products', 'Sales']
+TABLES = ['brands', 'categories', 'customers', 'orders', 'products', 'order_items', 
+          'staffs', 'stocks', 'stores']
 
-with open('dicts/columns.json') as f:
+with open('queries/columns.json') as f:
     columns_dict = json.load(f)
 
 
@@ -35,12 +34,9 @@ def make_snake_case(camel_cased_word: str) -> str:
     return snake_cased_word
 
 
-def read_data(sheet_name: str) -> pd.DataFrame:
-    print(f"reading data from {sheet_name}...")
-    df = pd.read_excel(
-        SOURCE, 
-        sheet_name=sheet_name,
-    ).dropna(thresh=3)
+def read_data(query_name: str) -> pd.DataFrame:
+    print(f"reading data from {query_name}...")
+    df = pd.read_csv(f"source/{query_name}.csv").dropna(thresh=3)
 
     df.rename(
         columns={col: make_snake_case(col) for col in df.columns}, 
@@ -51,7 +47,7 @@ def read_data(sheet_name: str) -> pd.DataFrame:
 
 
 def create_table(table_name: str) -> None:
-    ddl_file = f"ddl/{table_name}_ddl.sql"
+    ddl_file = f"queries/{table_name}.sql"
 
     with open(ddl_file) as f:
         ddl_query = f.read()
@@ -79,7 +75,7 @@ def load_data(df: pd.DataFrame, table_name: str) -> None:
 
 def pipeline() -> None:
     
-    for sheet_name in SHEETS:
+    for sheet_name in TABLES:
         df = read_data(sheet_name)
         
         table_name = make_snake_case(sheet_name)

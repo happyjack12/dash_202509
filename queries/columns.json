@@ -1,0 +1,11 @@
+{
+  "brands": ["brand_id", "brand_name"],
+  "categories": ["category_id", "category_name"],
+  "customers": ["customer_id", "first_name", "last_name", "phone", "email", "street", "city", "state", "zip_code"],
+  "order_items": ["order_id", "item_id", "product_id", "quantity", "list_price", "discount"],
+  "orders": ["order_id", "customer_id", "order_status", "order_date", "required_date", "shipped_date", "store_id", "staff_id"],
+  "products": ["product_id", "product_name", "brand_id", "category_id", "model_year", "list_price"],
+  "staffs": ["staff_id", "first_name", "last_name", "email", "phone", "active", "store_id", "manager_id"],
+  "stocks": ["store_id", "product_id", "quantity"],
+  "stores": ["store_id", "store_name", "phone", "email", "street", "city", "state", "zip_code"]
+}

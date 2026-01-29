@@ -5,7 +5,7 @@ DB = 'my.db'
 
 
 def read_query_file(query_name: str) -> str:
-    with open(f"./sql_scripts/{query_name}.sql") as f:
+    with open(f"./queries/{query_name}.sql") as f:
         query = f.read()
     
     return query
@@ -25,7 +25,3 @@ def get_data(query_name: str) -> pd.DataFrame:
     return df
 
 
-st.set_page_config(layout='wide')
-
-
-customers = get_data('customers')
